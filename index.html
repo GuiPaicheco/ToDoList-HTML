@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu To-Do-List</title>
+
+    <style>
+        :root {
+            --bg: #f4f4f6;
+            --card: #ffffff;
+            --text: #222;
+            --muted: #666;
+            --border: #d0d0d0;
+            --radius: 12px;
+
+            --high: #e74c3c;
+            --medium: #f1c40f;
+            --low: #2ecc71;
+        }
+
+        .dark {
+            --bg: #181a1d;
+            --card: #222528;
+            --text: #f1f1f1;
+            --muted: #aaa;
+            --border: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", sans-serif
+        }
+
+        body {
+            background: var(--bg);
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--text);
+            transition: background .25s, color .25s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 950px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800
+        }
+
+        #themeToggle {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            font-size: 19px;
+            color: var(--text);
+        }
+
+        .add-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--card);
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .add-area input {
+            flex: 1;
+            min-width: 220px;
+            padding: 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+        }
+
+        .add-area select {
+            width: 180px;
+            padding: 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+        }
+
+        .add-area button {
+            padding: 12px 18px;
+            background: #222;
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+
+        .dark .add-area button {
+            background: #f1f1f1;
+            color: #222
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .controls button,
+        .controls select {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--card);
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .controls button.active {
+            background: #222;
+            color: white;
+        }
+
+        .dark .controls button.active {
+            background: #f1f1f1;
+            color: #222;
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px
+        }
+
+        .item {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .top {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .text {
+            flex: 1;
+            font-size: 16px;
+            word-break: break-word;
+            cursor: pointer
+        }
+
+        .done .text {
+            text-decoration: line-through;
+            color: var(--muted)
+        }
+
+        .text.editing input {
+            width: 100%;
+            padding: 6px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+        }
+
+        .priority {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .p-high {
+            background: var(--high)
+        }
+
+        .p-medium {
+            background: var(--medium);
+            color: #222
+        }
+
+        .p-low {
+            background: var(--low)
+        }
+
+        .details {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .bottom {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .delete {
+            background: none;
+            border: none;
+            color: #c0392b;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .bottom {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="themeToggle">🌙</button>
+
+    <div class="container">
+        <h1>Meu To-Do-List</h1>
+
+        <div class="add-area">
+            <input id="taskInput" placeholder="O que precisa ser feito?">
+            <select id="prioritySelect">
+                <option value="low">Baixa prioridade</option>
+                <option value="medium">Média prioridade</option>
+                <option value="high">Alta prioridade</option>
+            </select>
+            <button id="addBtn">Adicionar</button>
+        </div>
+
+        <div class="controls">
+            <button data-filter="all" class="active">Todas</button>
+            <button data-filter="pending">Pendentes</button>
+            <button data-filter="done">Concluídas</button>
+            <button data-filter="high">Alta</button>
+            <button data-filter="medium">Média</button>
+            <button data-filter="low">Baixa</button>
+
+            <select id="sortSelect">
+                <option value="created_desc">Mais recentes</option>
+                <option value="created_asc">Mais antigas</option>
+                <option value="priority_desc">Maior prioridade</option>
+                <option value="priority_asc">Menor prioridade</option>
+                <option value="status">Pendentes → Concluídas</option>
+                <option value="recommended">Recomendado</option>
+            </select>
+        </div>
+
+        <div id="taskList" class="list"></div>
+    </div>
+
+    <script>
+        const themeBtn = document.getElementById("themeToggle");
+        const savedTheme = localStorage.getItem("todo_theme");
+
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark");
+            themeBtn.textContent = "☀️";
+        }
+
+        themeBtn.onclick = () => {
+            document.body.classList.toggle("dark");
+
+            if (document.body.classList.contains("dark")) {
+                localStorage.setItem("todo_theme", "dark");
+                themeBtn.textContent = "☀️";
+            } else {
+                localStorage.setItem("todo_theme", "light");
+                themeBtn.textContent = "🌙";
+            }
+        };
+
+        let tasks = JSON.parse(localStorage.getItem("todo_advanced")) || [];
+        let currentFilter = "all";
+        let currentSort = "created_desc";
+
+        const input = document.getElementById("taskInput");
+        const prioritySelect = document.getElementById("prioritySelect");
+        const taskList = document.getElementById("taskList");
+        const sortSelect = document.getElementById("sortSelect");
+
+        let typingMain = false;
+
+        input.addEventListener("focus", () => typingMain = true);
+        input.addEventListener("blur", () => typingMain = false);
+
+        function save() {
+            localStorage.setItem("todo_advanced", JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const text = input.value.trim();
+            if (!text) return;
+
+            tasks.push({
+                id: Date.now(),
+                text,
+                priority: prioritySelect.value,
+                createdAt: new Date().toISOString(),
+                doneAt: null,
+                done: false
+            });
+
+            input.value = "";
+            save();
+            render();
+        }
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                addTask();
+            }
+        });
+
+        function toggle(id) {
+            const t = tasks.find(x => x.id === id);
+            t.done = !t.done;
+            t.doneAt = t.done ? new Date().toISOString() : null;
+            save(); render();
+        }
+
+        function removeTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            save(); render();
+        }
+
+        function editTask(id, newText) {
+            if (!newText.trim()) return render();
+
+            const t = tasks.find(x => x.id === id);
+            t.text = newText;
+            save(); render();
+        }
+
+        function applyFilter(arr) {
+            switch (currentFilter) {
+                case "pending": return arr.filter(t => !t.done);
+                case "done": return arr.filter(t => t.done);
+                case "high": return arr.filter(t => t.priority === "high");
+                case "medium": return arr.filter(t => t.priority === "medium");
+                case "low": return arr.filter(t => t.priority === "low");
+                default: return arr;
+            }
+        }
+
+        function priorityValue(p) {
+            return p === "high" ? 3 : p === "medium" ? 2 : 1;
+        }
+
+        function applySort(arr) {
+            return arr.sort((a, b) => {
+                switch (currentSort) {
+                    case "created_desc": return b.id - a.id;
+                    case "created_asc": return a.id - b.id;
+                    case "priority_desc": return priorityValue(b.priority) - priorityValue(a.priority);
+                    case "priority_asc": return priorityValue(a.priority) - priorityValue(b.priority);
+                    case "status": return (a.done === b.done) ? 0 : a.done ? 1 : -1;
+                    case "recommended":
+                        const scoreA = (a.done ? 0 : 10) + priorityValue(a.priority);
+                        const scoreB = (b.done ? 0 : 10) + priorityValue(b.priority);
+                        return scoreB - scoreA;
+                }
+            });
+        }
+
+        function render() {
+            if (typingMain) return;
+
+            taskList.innerHTML = "";
+
+            let arr = applySort(applyFilter([...tasks]));
+
+            arr.forEach(t => {
+                const div = document.createElement("div");
+                div.className = "item" + (t.done ? " done" : "");
+
+                const created = new Date(t.createdAt).toLocaleString();
+                const doneText = t.done ? "<br>Concluída em: " + new Date(t.doneAt).toLocaleString() : "";
+
+                div.innerHTML = `
+            <div class="top">
+                <input type="checkbox" ${t.done ? "checked" : ""}>
+                <div class="text">${t.text}</div>
+                <div class="priority p-${t.priority}">
+                    ${t.priority === "high" ? "Alta" :
+                        t.priority === "medium" ? "Média" : "Baixa"}
+                </div>
+            </div>
+
+            <div class="details">Criada em: ${created}${doneText}</div>
+
+            <div class="bottom">
+                <button class="delete">Excluir</button>
+            </div>
+        `;
+
+                div.querySelector("input").onclick = () => toggle(t.id);
+
+                div.querySelector(".delete").onclick = () => removeTask(t.id);
+
+                const textEl = div.querySelector(".text");
+                textEl.onclick = () => {
+                    textEl.classList.add("editing");
+
+                    const field = document.createElement("input");
+                    field.type = "text";
+                    field.value = t.text;
+
+                    textEl.innerHTML = "";
+                    textEl.appendChild(field);
+
+                    setTimeout(() => field.focus(), 0);
+
+                    field.onkeydown = (e) => {
+                        if (e.key === "Enter") editTask(t.id, field.value.trim());
+                        if (e.key === "Escape") render();
+                    };
+                    field.onblur = () => editTask(t.id, field.value.trim());
+                };
+
+                taskList.appendChild(div);
+            });
+        }
+
+        document.getElementById("addBtn").onclick = addTask;
+
+        document.querySelectorAll(".controls button[data-filter]").forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll(".controls button[data-filter]").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                currentFilter = btn.dataset.filter;
+                render();
+            };
+        });
+
+        sortSelect.onchange = () => {
+            currentSort = sortSelect.value;
+            render();
+        };
+
+        render();
+    </script>
+
+</body>
+
+</html>
